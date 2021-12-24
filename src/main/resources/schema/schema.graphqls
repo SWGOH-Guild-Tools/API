@@ -1,0 +1,8 @@
+type Query {
+    helloWorld: Show!
+}
+
+type Show {
+    title: String
+    releaseYear: Int
+}
