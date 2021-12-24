@@ -39,6 +39,10 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
+tasks.getByName<Jar>("jar") {
+    enabled = false
+}
+
 tasks.generateJava {
     schemaPaths =
         listOf("${projectDir}/src/main/resources/schema").toMutableList() // List of directories containing schema files
