@@ -24,16 +24,17 @@ jobs:
           restore-keys: ${{ runner.os }}-gradle
       - name: Build with Gradle
         run: ./gradlew build
+      - name: Test
+        run: cd build/libs
+      - name: Test2
+        run: ls
 
   release-container:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
-      - name: Test
-        run: cd build/libs
-      - name: Test2
-        run: ls
+
 
 
 
