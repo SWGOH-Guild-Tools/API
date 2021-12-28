@@ -50,6 +50,7 @@ jobs:
           connect_timeout: 10s
           script: |
             docker container stop API
+            docker container rm API
             docker pull mbruty/swgoh-api
             docker run -d -p 80:8080 --name API mbruty/swgoh-api
 
