@@ -49,9 +49,9 @@ jobs:
           pass: ${{ secrets.DC_PASS }}
           connect_timeout: 10s
           script: |
-            sudo docker stop $(docker ps -q --filter ancestor=mbruty/swgoh-api )
+            sudo docker container stop API
             sudo docker pull mbruty/swgoh-api
-            sudo docker run -d -p 80:8080 mbruty/swgoh-api
+            sudo docker run -d -p 80:8080 --name API mbruty/swgoh-api
 
 
 
