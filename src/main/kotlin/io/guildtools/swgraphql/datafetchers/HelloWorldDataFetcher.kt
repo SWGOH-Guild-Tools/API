@@ -8,6 +8,6 @@ import io.guildtools.swgraphql.model.types.Show
 class HelloWorldDataFetcher {
     @DgsQuery
     fun helloWorld(): Show {
-        return Show("Star Wars Episode 3", 2005)
+        return Show("Star Wars Episode 7", 2005)
     }
 }
