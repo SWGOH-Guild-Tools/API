@@ -7,6 +7,7 @@ on:
 
 jobs:
   build:
+    name: Build container
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -35,6 +36,13 @@ jobs:
           context: .
           push: true
           tags: mbruty/swgoh-api:latest
+  deploy:
+    name: Deploy container
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test
+        run: ECHO Hi
 
 
 
