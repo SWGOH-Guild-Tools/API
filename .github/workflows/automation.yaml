@@ -34,13 +34,11 @@ jobs:
           restore-keys: ${{ runner.os }}-gradle
       - name: Build with Gradle
         run: ./gradlew build
-
-
   deploy-container:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
       - name: Run a one-line script
         run: ls -a
 
