@@ -26,7 +26,11 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     implementation(platform("com.netflix.graphql.dgs:graphql-dgs-platform-dependencies:latest.release"))
     implementation("com.netflix.graphql.dgs:graphql-dgs-spring-boot-starter")
+    implementation("help.swgoh.api:swgoh-api-connector:4.2.1")
+
 }
+
+
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {

@@ -1,8 +1,94 @@
 type Query {
-    helloWorld: Show!
+    Guild(allyCode: Int): Guild
+    Player(allyCode: Int): Player
 }
 
-type Show {
-    title: String
-    releaseYear: Int
+type Relic { currentTier: Int }
+
+type SecondaryStat { unitStat: Int value: Float roll: Int }
+
+type PrimaryStat { unitStat: Int value: Float }
+
+type Mods {
+    id: String
+    level: Int
+    tier: Int
+    slot: Int
+    set: Int
+    pips: Int
+    secondaryStat: [SecondaryStat ]
+    primaryStat: PrimaryStat
+}
+type Skills {
+    id: String
+    tier: Int
+    nameKey: String
+    isZeta: Boolean
+    tiers: Int
+}
+type Equipment {
+    equipmentId: String
+    slot: Int
+    nameKey: String
+}
+type Roster {
+    id: String
+    defId: String
+    nameKey: String
+    rarity: Int
+    level: Int
+    xp: Int
+    gear: Int
+    combatType: Int
+    gp: Int
+    primaryUnitStat: String
+    relic: Relic
+    crew: [ Crew ]
+    mods: [ Mods ]
+    skills: [ Skills ]
+    equipped: [ Equipment ]
+}
+
+type SkillReferenceList {
+    skillId: String
+    requiredTier: Int
+    requiredRarity: Int
+    requiredRelicTier: Int
+}
+
+type Crew {
+    unitId: String
+    slot: Int
+    skilllessCrewAbilityId: String
+    gp: Int
+    cp: Int
+    skillReferenceList: [SkillReferenceList ]
+}
+
+type Raid { rancor: String aat: String sith_raid: String }
+
+type Guild {
+    id: String
+    name: String
+    desc: String
+    members: Int
+    status: Int
+    required: Int
+    bannerColor: String
+    bannerLogo: String
+    message: String
+    gp: Int
+    updated: String
+    roster: [ Player ]
+    raid: Raid
+}
+
+type Player {
+    allyCode: Int
+    id: String
+    name: String
+    level: Int
+    guildRefId: String
+    updated: String
+    roster: [Roster ]
 }
