@@ -23,13 +23,9 @@ class ApiWorker {
         if(!_started) {
             _conn = SWGOHConnection.getSession()
 
-            try {
-                _playerRepo = DBConnection.getPlayerRepo()
-            } catch (e: Exception) {}
-
-            try {
-                _guildRepo = DBConnection.getGuildRepo()
-            } catch (e : Exception) {}
+            // if we don't have the repos, stall starting until we do
+            _playerRepo = DBConnection.getPlayerRepo() ?: return
+            _guildRepo = DBConnection.getGuildRepo() ?: return
 
             _started = true
             thread(start = true) {
@@ -48,7 +44,7 @@ class ApiWorker {
         }
     }
 
-    fun processGuild(data: QueueObject) {
+    private fun processGuild(data: QueueObject) {
         println("Fetching guild data...")
         val json = _conn.getGuild(data.allyCodes[0]).get()
         val mapper = ObjectMapper()
@@ -68,7 +64,7 @@ class ApiWorker {
         }
     }
 
-    fun processPlayer(data: QueueObject) {
+    private fun processPlayer(data: QueueObject) {
         println("Fetching player data...")
         val json = _conn.getPlayers(data.allyCodes, playerFilter).get()
         val playerData = ObjectMapper().readValue(json, Array<Player>::class.java)
@@ -93,7 +89,6 @@ class ApiWorker {
             .and("level")
             .and("guildRefId")
             .and("roster")
-            .and("1640688309000")
             .and("updated")
     }
 }

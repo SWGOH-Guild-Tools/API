@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.graphql.dgs.DgsComponent
 import com.netflix.graphql.dgs.DgsQuery
 import help.swgoh.api.SwgohAPIFilter
+import io.guildtools.swgraphql.Utils
 import io.guildtools.swgraphql.`api-swgoh-help`.DBConnection
 import io.guildtools.swgraphql.`api-swgoh-help`.PRIORITY
 import io.guildtools.swgraphql.`api-swgoh-help`.QUERY_TYPE
@@ -26,16 +27,21 @@ class GuildDataFetcher {
 
     @DgsQuery
     fun Guild(allyCode: Int): Guild {
-        try {
-            DBConnection.getGuildRepo()
-        } catch (e: Exception) { DBConnection.setGuildRepo(_guildRepo) }
+        DBConnection.setRepos(_guildRepo, _playerRepo)
 
-        try {
-            DBConnection.getPlayerRepo()
-        } catch (e: Exception) { DBConnection.setPlayerRepo(_playerRepo) }
+        var guild = _guildRepo.findByRosterAllyCode(allyCode)
 
-        SWGOHConnection.enqueue(mutableListOf(allyCode), PRIORITY.NORMAL, QUERY_TYPE.GUILD)
-        throw CacheMissException()
+        if(guild?.updated == null) {
+            SWGOHConnection.enqueue(mutableListOf(allyCode), PRIORITY.NORMAL, QUERY_TYPE.GUILD)
+            throw CacheMissException()
+        }
+
+        if(Utils.isStale(guild.updated!!)) {
+            SWGOHConnection.enqueue(mutableListOf(allyCode), PRIORITY.NORMAL, QUERY_TYPE.GUILD)
+            guild = guild.copy(isStale = true)
+        }
+
+        return guild
     }
 
     companion object {

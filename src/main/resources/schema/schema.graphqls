@@ -81,6 +81,7 @@ type Guild {
     updated: String
     roster: [ Player ]
     raid: Raid
+    isStale: Boolean
 }
 
 type Player {
@@ -90,5 +91,6 @@ type Player {
     level: Int
     guildRefId: String
     updated: String
-    roster: [Roster ]
+    roster: [ Roster ]
+    isStale: Boolean
 }
