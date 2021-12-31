@@ -6,14 +6,20 @@ import com.netflix.graphql.dgs.DgsData
 import com.netflix.graphql.dgs.DgsDataFetchingEnvironment
 import com.netflix.graphql.dgs.DgsQuery
 import help.swgoh.api.SwgohAPIFilter
+import io.guildtools.swgraphql.Utils
 import io.guildtools.swgraphql.`api-swgoh-help`.DBConnection
+import io.guildtools.swgraphql.`api-swgoh-help`.PRIORITY
+import io.guildtools.swgraphql.`api-swgoh-help`.QUERY_TYPE
 import io.guildtools.swgraphql.`api-swgoh-help`.SWGOHConnection
 import io.guildtools.swgraphql.cache.GuildRepository
 import io.guildtools.swgraphql.cache.PlayerRepository
 import io.guildtools.swgraphql.model.types.Guild
 import io.guildtools.swgraphql.model.types.Player
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.Query
 import java.io.File
+import java.util.*
 
 @DgsComponent
 class PlayerDataFetcher {
@@ -26,31 +32,29 @@ class PlayerDataFetcher {
 
     @DgsQuery
     fun Player(allyCode: Int): Player {
-        try {
-            DBConnection.getGuildRepo()
-        } catch (e: Exception) { DBConnection.setGuildRepo(_guildRepo) }
+        DBConnection.setRepos(_guildRepo, _playerRepo)
 
-        try {
-            DBConnection.getPlayerRepo()
-        } catch (e: Exception) { DBConnection.setPlayerRepo(_playerRepo) }
+        val query = Query()
+        query.addCriteria(Criteria.where("allyCode").`is`(allyCode))
 
-        val json = SWGOHConnection.getSession().getPlayer(allyCode, filter).get()
-        return ObjectMapper().readValue(json, Array<Player>::class.java)[0]
+        var player = _playerRepo.findPlayerByAllyCode(allyCode)
+
+        if(player?.updated == null) {
+            SWGOHConnection.enqueue(mutableListOf(allyCode), PRIORITY.NORMAL, QUERY_TYPE.PLAYER)
+            throw CacheMissException()
+        }
+
+        if(Utils.isStale(player.updated!!)) {
+            SWGOHConnection.enqueue(mutableListOf(allyCode), PRIORITY.NORMAL, QUERY_TYPE.PLAYER)
+            player = player.copy(isStale = true)
+        }
+
+        return player
+
     }
 
     @DgsData(parentType = "Guild", field = "roster")
     fun roster(dfe: DgsDataFetchingEnvironment) {
 
-    }
-
-    companion object {
-        val filter: SwgohAPIFilter = SwgohAPIFilter("allyCode")
-            .and("id")
-            .and("name")
-            .and("level")
-            .and("guildRefId")
-            .and("roster")
-            .and("1640688309000")
-            .and("updated")
     }
 }

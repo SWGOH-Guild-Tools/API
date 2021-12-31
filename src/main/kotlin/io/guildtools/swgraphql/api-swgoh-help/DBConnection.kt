@@ -2,15 +2,12 @@ package io.guildtools.swgraphql.`api-swgoh-help`
 
 import io.guildtools.swgraphql.cache.GuildRepository
 import io.guildtools.swgraphql.cache.PlayerRepository
-import org.springframework.beans.factory.annotation.Autowired
 
 class DBConnection private constructor(){
 
-    @Autowired
-    private lateinit var _playerRepository: PlayerRepository
+    private var _playerRepository: PlayerRepository? = null
 
-    @Autowired
-    private lateinit var _guildRepository: GuildRepository
+    private var _guildRepository: GuildRepository? = null
 
     private object HOLDER {
         val INSTANCE = DBConnection()
@@ -18,19 +15,21 @@ class DBConnection private constructor(){
     companion object {
         private val instance: DBConnection by lazy { DBConnection.HOLDER.INSTANCE }
 
-        fun setPlayerRepo(repository: PlayerRepository) {
-            instance._playerRepository = repository
+        fun setRepos(guildRepository: GuildRepository, playerRepository: PlayerRepository) {
+            if(instance._playerRepository == null) {
+                instance._playerRepository = playerRepository
+            }
+
+            if(instance._guildRepository == null) {
+                instance._guildRepository = guildRepository
+            }
         }
 
-        fun setGuildRepo(repository: GuildRepository) {
-            instance._guildRepository = repository
-        }
-
-        fun getPlayerRepo(): PlayerRepository {
+        fun getPlayerRepo(): PlayerRepository? {
             return instance._playerRepository
         }
 
-        fun getGuildRepo(): GuildRepository {
+        fun getGuildRepo(): GuildRepository? {
             return instance._guildRepository
         }
     }
