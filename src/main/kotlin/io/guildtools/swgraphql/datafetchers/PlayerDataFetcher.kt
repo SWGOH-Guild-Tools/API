@@ -1,11 +1,9 @@
 package io.guildtools.swgraphql.datafetchers
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.graphql.dgs.DgsComponent
 import com.netflix.graphql.dgs.DgsData
 import com.netflix.graphql.dgs.DgsDataFetchingEnvironment
 import com.netflix.graphql.dgs.DgsQuery
-import help.swgoh.api.SwgohAPIFilter
 import io.guildtools.swgraphql.Utils
 import io.guildtools.swgraphql.`api-swgoh-help`.DBConnection
 import io.guildtools.swgraphql.`api-swgoh-help`.PRIORITY
@@ -16,10 +14,6 @@ import io.guildtools.swgraphql.cache.PlayerRepository
 import io.guildtools.swgraphql.model.types.Guild
 import io.guildtools.swgraphql.model.types.Player
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.mongodb.core.query.Criteria
-import org.springframework.data.mongodb.core.query.Query
-import java.io.File
-import java.util.*
 
 @DgsComponent
 class PlayerDataFetcher {
@@ -33,9 +27,6 @@ class PlayerDataFetcher {
     @DgsQuery
     fun Player(allyCode: Int): Player {
         DBConnection.setRepos(_guildRepo, _playerRepo)
-
-        val query = Query()
-        query.addCriteria(Criteria.where("allyCode").`is`(allyCode))
 
         var player = _playerRepo.findPlayerByAllyCode(allyCode)
 
@@ -53,8 +44,24 @@ class PlayerDataFetcher {
 
     }
 
-    @DgsData(parentType = "Guild", field = "roster")
-    fun roster(dfe: DgsDataFetchingEnvironment) {
+    @DgsData(parentType = "Guild")
+    fun roster(dfe: DgsDataFetchingEnvironment): List<Player>? {
+        val src = dfe.getSource<Guild>()
+        val id = src.id ?: return emptyList()
+        val needUpdating = mutableListOf<Int>()
 
+        // check to see if any players need updating
+        val players = (_playerRepo.findPlayersByGuildRefId(id) ?: return emptyList()).toMutableList()
+        players.forEachIndexed { index, player ->
+            if(player.updated?.let { Utils.isStale(it) } == true) {
+                player.allyCode?.let { needUpdating.add(it) }
+                players[index] = player.copy(isStale = true)
+            }
+        }
+
+        if(needUpdating.isNotEmpty()) {
+            SWGOHConnection.enqueue(needUpdating, PRIORITY.NORMAL, QUERY_TYPE.PLAYER)
+        }
+        return players.toList()
     }
 }

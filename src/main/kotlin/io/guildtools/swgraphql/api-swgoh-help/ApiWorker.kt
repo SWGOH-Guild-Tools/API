@@ -54,12 +54,10 @@ class ApiWorker {
         _guildRepo.save(guildData)
         val players = mutableListOf<Int>()
         guildData.roster?.forEach {
-            if (it != null) {
-                it.allyCode?.let { it1 -> players.add(it1) }
-            }
+            it?.allyCode?.let { allyCode -> players.add(allyCode) }
         }
 
-        if (players != null && players.isNotEmpty()) {
+        if (players.isNotEmpty()) {
             SWGOHConnection.enqueue(players, PRIORITY.HIGHEST, QUERY_TYPE.PLAYER)
         }
     }

@@ -43,13 +43,4 @@ class GuildDataFetcher {
 
         return guild
     }
-
-    companion object {
-        val filter = SwgohAPIFilter("id")
-            .and("name")
-            .and("desc")
-            .and("members")
-            .and("gp")
-            .and("roster")
-    }
 }
