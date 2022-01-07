@@ -6,11 +6,11 @@ import com.netflix.graphql.dgs.DgsDataFetchingEnvironment
 import com.netflix.graphql.dgs.DgsQuery
 import io.guildtools.swgraphql.Utils
 import io.guildtools.swgraphql.`api-swgoh-help`.DBConnection
-import io.guildtools.swgraphql.`api-swgoh-help`.PRIORITY
-import io.guildtools.swgraphql.`api-swgoh-help`.QUERY_TYPE
 import io.guildtools.swgraphql.`api-swgoh-help`.SWGOHConnection
 import io.guildtools.swgraphql.cache.GuildRepository
 import io.guildtools.swgraphql.cache.PlayerRepository
+import io.guildtools.swgraphql.data.PRIORITY
+import io.guildtools.swgraphql.data.QUERY_TYPE
 import io.guildtools.swgraphql.model.types.Guild
 import io.guildtools.swgraphql.model.types.Player
 import org.springframework.beans.factory.annotation.Autowired
@@ -51,7 +51,7 @@ class PlayerDataFetcher {
         val needUpdating = mutableListOf<Int>()
 
         // check to see if any players need updating
-        val players = (_playerRepo.findPlayersByGuildRefId(id) ?: return emptyList()).toMutableList()
+        val players = (_playerRepo.findPlayersByGuildRefId(id) ?: throw CacheMissException()).toMutableList()
         players.forEachIndexed { index, player ->
             if(player.updated?.let { Utils.isStale(it) } == true) {
                 player.allyCode?.let { needUpdating.add(it) }
@@ -61,6 +61,17 @@ class PlayerDataFetcher {
 
         if(needUpdating.isNotEmpty()) {
             SWGOHConnection.enqueue(needUpdating, PRIORITY.NORMAL, QUERY_TYPE.PLAYER)
+        }
+
+        // If the players is larger than the maximum allowed for the guild in-game, update all players
+        // This will happen when a member is in the database, then leaves the guild.
+        // Theoretically this 'outside' player will be stale, and will be updated
+        // But just in case
+        if(players.size > 50) {
+            // Update all players
+            val codes = mutableListOf<Int>()
+            players.forEach { it.allyCode?.let { it1 -> codes.add(it1) } }
+            SWGOHConnection.enqueue(codes, PRIORITY.HIGHEST, QUERY_TYPE.PLAYER)
         }
         return players.toList()
     }

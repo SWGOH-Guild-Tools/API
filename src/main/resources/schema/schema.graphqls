@@ -3,68 +3,6 @@ type Query {
     Player(allyCode: Int): Player
 }
 
-type Relic { currentTier: Int }
-
-type SecondaryStat { unitStat: Int value: Float roll: Int }
-
-type PrimaryStat { unitStat: Int value: Float }
-
-type Mods {
-    id: String
-    level: Int
-    tier: Int
-    slot: Int
-    set: Int
-    pips: Int
-    secondaryStat: [SecondaryStat ]
-    primaryStat: PrimaryStat
-}
-type Skills {
-    id: String
-    tier: Int
-    nameKey: String
-    isZeta: Boolean
-    tiers: Int
-}
-type Equipment {
-    equipmentId: String
-    slot: Int
-    nameKey: String
-}
-type Roster {
-    id: String
-    defId: String
-    nameKey: String
-    rarity: Int
-    level: Int
-    xp: Int
-    gear: Int
-    combatType: Int
-    gp: Int
-    primaryUnitStat: String
-    relic: Relic
-    crew: [ Crew ]
-    mods: [ Mods ]
-    skills: [ Skills ]
-    equipped: [ Equipment ]
-}
-
-type SkillReferenceList {
-    skillId: String
-    requiredTier: Int
-    requiredRarity: Int
-    requiredRelicTier: Int
-}
-
-type Crew {
-    unitId: String
-    slot: Int
-    skilllessCrewAbilityId: String
-    gp: Int
-    cp: Int
-    skillReferenceList: [SkillReferenceList ]
-}
-
 type Raid { rancor: String aat: String sith_raid: String }
 
 type Guild {
@@ -79,18 +17,133 @@ type Guild {
     message: String
     gp: Int
     updated: String
-    roster: [ Player ]
+    roster: [Player]
     raid: Raid
     isStale: Boolean
 }
 
+type Mods {
+  Health: Int
+  Speed: Int
+  PhysicalDamage: Int
+  SpecialDamage: Int
+  Armor: Int
+  Resistance: Int
+  CriticalDamage: Float
+  Potency: Float
+  Tenacity: Float
+  PhysicalCriticalChance: Float
+  SpecialCriticalChance: Float
+  Protection: Int
+}
+
+type GrowthModifiers {
+  Strength: Float
+  Agility: Float
+  Tactics: Float
+}
+
+type Base {
+  Health: Int
+  Strength: Int
+  Agility: Int
+  Tactics: Int
+  Speed: Int
+  PhysicalDamage: Int
+  SpecialDamage: Int
+  Armor: Int
+  Resistance: Int
+  ArmorPenetration: Int
+  ResistancePenetration: Int
+  DodgeChance: Int
+  DeflectionChance: Int
+  PhysicalCriticalChance: Int
+  SpecialCriticalChance: Int
+  CriticalDamage: Float
+  Potency: Float
+  Tenacity: Float
+  HealthSteal: Float
+  Protection: Int
+  Mastery: Int
+}
+
+type Stats {
+  mods: Mods
+  growthModifiers: GrowthModifiers
+  base: Base
+}
+
+type Relic {
+  currentTier: Int
+}
+
+type SecondaryStat {
+  unitStat: Int
+  value: Int
+  roll: Int
+}
+
+type PrimaryStat {
+  unitStat: Int
+  value: Float
+}
+
+type Skills {
+  id: String
+  tier: Int
+  nameKey: String
+  isZeta: Boolean
+  tiers: Int
+}
+
+type SkillReferenceList {
+  skillId: String
+  requiredTier: Int
+  requiredRarity: Int
+  requiredRelicTier: Int
+}
+
+type Crew {
+  unitId: String
+  slot: Int
+  skilllessCrewAbilityId: String
+  gp: Int
+  cp: Float
+  skillReferenceList: [SkillReferenceList]
+}
+
+type Equipped {
+  equipmentId: String
+  slot: Int
+  nameKey: String
+}
+
+type Roster {
+  id: String
+  defId: String
+  nameKey: String
+  rarity: Int
+  level: Int
+  xp: Int
+  gear: Int
+  combatType: Int
+  gp: Int
+  primaryUnitStat: String
+  stats: Stats
+  relic: Relic
+  crew: [Crew]
+  mods: [Mods]
+  skills: [Skills]
+  equipped: [Equipped]
+}
+
 type Player {
-    allyCode: Int
-    id: String
-    name: String
-    level: Int
-    guildRefId: String
-    updated: String
-    roster: [ Roster ]
-    isStale: Boolean
+  allyCode: Int
+  id: String
+  name: String
+  level: Int
+  guildRefId: String
+  updated: String
+  roster: [Roster]
+  isStale: Boolean
 }
