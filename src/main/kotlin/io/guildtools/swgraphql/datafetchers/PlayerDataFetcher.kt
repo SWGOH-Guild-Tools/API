@@ -1,25 +1,19 @@
 package io.guildtools.swgraphql.datafetchers
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.graphql.dgs.DgsComponent
 import com.netflix.graphql.dgs.DgsData
 import com.netflix.graphql.dgs.DgsDataFetchingEnvironment
 import com.netflix.graphql.dgs.DgsQuery
-import help.swgoh.api.SwgohAPIFilter
 import io.guildtools.swgraphql.Utils
 import io.guildtools.swgraphql.`api-swgoh-help`.DBConnection
-import io.guildtools.swgraphql.`api-swgoh-help`.PRIORITY
-import io.guildtools.swgraphql.`api-swgoh-help`.QUERY_TYPE
 import io.guildtools.swgraphql.`api-swgoh-help`.SWGOHConnection
 import io.guildtools.swgraphql.cache.GuildRepository
 import io.guildtools.swgraphql.cache.PlayerRepository
+import io.guildtools.swgraphql.data.PRIORITY
+import io.guildtools.swgraphql.data.QUERY_TYPE
 import io.guildtools.swgraphql.model.types.Guild
 import io.guildtools.swgraphql.model.types.Player
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.mongodb.core.query.Criteria
-import org.springframework.data.mongodb.core.query.Query
-import java.io.File
-import java.util.*
 
 @DgsComponent
 class PlayerDataFetcher {
@@ -33,9 +27,6 @@ class PlayerDataFetcher {
     @DgsQuery
     fun Player(allyCode: Int): Player {
         DBConnection.setRepos(_guildRepo, _playerRepo)
-
-        val query = Query()
-        query.addCriteria(Criteria.where("allyCode").`is`(allyCode))
 
         var player = _playerRepo.findPlayerByAllyCode(allyCode)
 
@@ -53,8 +44,35 @@ class PlayerDataFetcher {
 
     }
 
-    @DgsData(parentType = "Guild", field = "roster")
-    fun roster(dfe: DgsDataFetchingEnvironment) {
+    @DgsData(parentType = "Guild")
+    fun roster(dfe: DgsDataFetchingEnvironment): List<Player>? {
+        val src = dfe.getSource<Guild>()
+        val id = src.id ?: return emptyList()
+        val needUpdating = mutableListOf<Int>()
 
+        // check to see if any players need updating
+        val players = (_playerRepo.findPlayersByGuildRefId(id) ?: throw CacheMissException()).toMutableList()
+        players.forEachIndexed { index, player ->
+            if(player.updated?.let { Utils.isStale(it) } == true) {
+                player.allyCode?.let { needUpdating.add(it) }
+                players[index] = player.copy(isStale = true)
+            }
+        }
+
+        if(needUpdating.isNotEmpty()) {
+            SWGOHConnection.enqueue(needUpdating, PRIORITY.NORMAL, QUERY_TYPE.PLAYER)
+        }
+
+        // If the players is larger than the maximum allowed for the guild in-game, update all players
+        // This will happen when a member is in the database, then leaves the guild.
+        // Theoretically this 'outside' player will be stale, and will be updated
+        // But just in case
+        if(players.size > 50) {
+            // Update all players
+            val codes = mutableListOf<Int>()
+            players.forEach { it.allyCode?.let { it1 -> codes.add(it1) } }
+            SWGOHConnection.enqueue(codes, PRIORITY.HIGHEST, QUERY_TYPE.PLAYER)
+        }
+        return players.toList()
     }
 }
