@@ -1,7 +1,7 @@
 type Query {
     Guild(allyCode: Int): Guild
     Player(allyCode: Int): Player
-    faction(guildRefId: Int, faction: String): [ Player ]
+    faction(guildRefId: String, faction: String): [ Player ]
     factions: [ String ]
 }
 
