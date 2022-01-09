@@ -6,11 +6,13 @@ import help.swgoh.api.SwgohAPI
 import help.swgoh.api.SwgohAPIFilter
 import io.guildtools.swgraphql.cache.GuildRepository
 import io.guildtools.swgraphql.cache.PlayerRepository
+import io.guildtools.swgraphql.data.Bindings
 import io.guildtools.swgraphql.data.PRIORITY
 import io.guildtools.swgraphql.data.QUERY_TYPE
 import io.guildtools.swgraphql.data.QueueObject
 import io.guildtools.swgraphql.model.types.Guild
 import io.guildtools.swgraphql.model.types.Player
+import io.guildtools.swgraphql.model.types.Roster
 import org.springframework.http.HttpEntity
 import org.springframework.http.MediaType
 import org.springframework.web.client.RestTemplate
@@ -86,7 +88,7 @@ class ApiWorker {
     }
 
     private fun processPlayer(data: MutableList<QueueObject<Int>>) {
-        // Extract the ally codes from the list of queue objects
+        // Extract the allycodes from the list of queue objects
         val allyCodes = mutableListOf<Int>()
         data.forEach { allyCodes.add(it.key) }
 
@@ -113,7 +115,33 @@ class ApiWorker {
             }
         }
 
+        // Grab additional information
+        // This will increase the amount of data stored in the db, but will make requests faster
+        // In the future when we have a better idea of how this works at scale, this may be moved to grabbing on request
+        for(i in result.indices) {
+            result[i] = setUnitDetails(result[i])
+        }
         return result
+    }
+
+    private fun setUnitDetails(player: Player): Player {
+        val newRoster = mutableListOf<Roster>()
+        player.roster?.forEach { character ->
+            if(character != null) {
+                val data = character.defId?.let { Bindings.getCharacter(it) }
+                if(data != null) {
+                    val newCharacter = character.copy(
+                        name = data.name,
+                        alignment = data.alignment,
+                        texture = data.texture,
+                        categories = data.categories,
+                        role = data.role
+                    )
+                    newRoster.add(newCharacter)
+                }
+            }
+        }
+        return player.copy(roster = newRoster)
     }
 
     private fun savePlayers(players: Array<Player>) {
