@@ -2,18 +2,17 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import java.io.ByteArrayOutputStream
-import java.util.Date
 
 class VersionPlugin: Plugin<Project> {
     override fun apply(target: Project) {
         target.task("version") {
-            val file = File("${project.projectDir}/build.gradle.kts")
-            val s = file.readText().split('\n').toMutableList()
-            for(i in s.indices) {
-                if (s[i].startsWith("version")) {
-                    val tag = s[i].split("=").last().trim().replace("\"", "")
-                    target.exec {
-                        commandLine = mutableListOf("echo", "TAG_NUMBER=${tag}", ">>", "\$GITHUB_ENV")
+            doFirst {
+                val file = File("${project.projectDir}/build.gradle.kts")
+                val s = file.readText().split('\n').toMutableList()
+                for(i in s.indices) {
+                    if (s[i].startsWith("version")) {
+                        val tag = s[i].split("=").last().trim().replace("\"", "")
+                        File("${project.projectDir}/tag.txt").writeText(tag)
                     }
                 }
             }
@@ -42,7 +41,7 @@ class ReleasePlugin: Plugin<Project> {
                 if(isMain) { minor += 1 }
 
                 // Save the new version
-                val suffix = if(isMain) minor.toString() else "${minor}-${Date().time / 1000}-SNAPSHOT"
+                val suffix = if(isMain) minor.toString() else "${minor}-${System.getenv("GITHUB_RUN_NUMBER")}-SNAPSHOT"
                 target.version = "${version.joinToString(".")}.${suffix}"
 
                 // Write the changes to the file

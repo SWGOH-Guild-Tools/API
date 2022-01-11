@@ -31,7 +31,9 @@ jobs:
       - name: Run Gradle Release
         run: ./gradlew release
       - name: Set Env
-        run: ./gradlew version
+        run: |
+          ./gradlew version
+          echo "TAG_NUMBER=$(cat tag.txt)" >> $GITHUB_ENV
       - name: Build with Gradle
         run: ./gradlew build
       - name: Login to DockerHub
