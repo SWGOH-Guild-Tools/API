@@ -2,7 +2,12 @@ name: Build and deploy
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+      - ci-release
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
@@ -23,6 +28,10 @@ jobs:
           path: ~/.gradle/caches
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
           restore-keys: ${{ runner.os }}-gradle
+      - name: Run Gradle Release
+        run: ./gradlew release
+      - name: Set Env
+        run: ./gradlew version
       - name: Build with Gradle
         run: ./gradlew build
       - name: Login to DockerHub
@@ -35,24 +44,26 @@ jobs:
         with:
           context: .
           push: true
-          tags: mbruty/swgoh-api:latest
-  deploy:
-    name: Deploy container
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: SSH pipeline
-        uses: cross-the-world/ssh-pipeline@master
-        with:
-          host: ${{ secrets.DC_HOST }}
-          user: ${{ secrets.DC_USER }}
-          pass: ${{ secrets.DC_PASS }}
-          connect_timeout: 10s
-          script: |
-            docker container stop API
-            docker container rm API
-            docker pull mbruty/swgoh-api
-            docker run -d -p 80:8080 --name API mbruty/swgoh-api
+          tags: mbruty/swgoh-api:${{ TAG_NUMBER }}
+
+# Ignore deploying for now...
+#  deploy:
+#    name: Deploy container
+#    needs: build
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: SSH pipeline
+#        uses: cross-the-world/ssh-pipeline@master
+#        with:
+#          host: ${{ secrets.DC_HOST }}
+#          user: ${{ secrets.DC_USER }}
+#          pass: ${{ secrets.DC_PASS }}
+#          connect_timeout: 10s
+#          script: |
+#            docker container stop API
+#            docker container rm API
+#            docker pull mbruty/swgoh-api
+#            docker run -d -p 80:8080 --name API mbruty/swgoh-api
 
 
 
