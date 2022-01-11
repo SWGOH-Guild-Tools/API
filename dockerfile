@@ -1,4 +1,5 @@
 FROM openjdk:17-alpine
-COPY /build/libs/SWGraphQL-0.0.1.jar /app.jar
+ARG JAR_NAME
+COPY /build/libs/$JAR_NAME /app.jar
 EXPOSE 8080
 ENTRYPOINT ["java","-jar","/app.jar"]

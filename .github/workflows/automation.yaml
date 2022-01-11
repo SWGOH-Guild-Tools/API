@@ -2,7 +2,11 @@ name: Build and deploy
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
@@ -23,6 +27,14 @@ jobs:
           path: ~/.gradle/caches
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
           restore-keys: ${{ runner.os }}-gradle
+      - name: Run Gradle Release
+        run: ./gradlew release
+      - name: Run Gradle Version
+        run: ./gradlew version
+      - name: Set Environment
+        run: |
+          echo "TAG_NUMBER=$(cat tag.txt)" >> $GITHUB_ENV
+          echo "RELEASE=$(cat release.txt)" >> $GITHUB_ENV
       - name: Build with Gradle
         run: ./gradlew build
       - name: Login to DockerHub
@@ -30,16 +42,26 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build and push
+      - name: Build and push tag
         uses: docker/build-push-action@v2
         with:
           context: .
+          build-args: ${{ env.TAG_NUMBER }}.jar
           push: true
-          tags: mbruty/swgoh-api:latest
+          tags: mbruty/swgoh-api:${{ env.TAG_NUMBER }}
+      - name: Build and push release
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          build-args: ${{ env.TAG_NUMBER }}.jar
+          push: true
+          tags: mbruty/swgoh-api:${{ env.RELEASE }}
+
   deploy:
     name: Deploy container
     needs: build
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
     steps:
       - name: SSH pipeline
         uses: cross-the-world/ssh-pipeline@master
@@ -51,8 +73,26 @@ jobs:
           script: |
             docker container stop API
             docker container rm API
-            docker pull mbruty/swgoh-api
+            docker pull mbruty/swgoh-api:latest
             docker run -d -p 80:8080 --name API mbruty/swgoh-api
+  deploy-snapshot:
+    name: Deploy snapshot container
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref != 'refs/heads/master'
+    steps:
+      - name: SSH pipeline
+        uses: cross-the-world/ssh-pipeline@master
+        with:
+          host: ${{ secrets.DC_HOST }}
+          user: ${{ secrets.DC_USER }}
+          pass: ${{ secrets.DC_PASS }}
+          connect_timeout: 10s
+          script: |
+            docker container stop API
+            docker container rm API
+            docker pull mbruty/swgoh-api:snapshot
+            docker run -d -p 8080:8080 --name API mbruty/swgoh-api
 
 
 

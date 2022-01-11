@@ -1,4 +1,84 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+import java.io.ByteArrayOutputStream
+
+class VersionPlugin: Plugin<Project> {
+    override fun apply(target: Project) {
+        target.task("version") {
+            doFirst {
+                val file = File("${project.projectDir}/build.gradle.kts")
+                val s = file.readText().split('\n').toMutableList()
+                for(i in s.indices) {
+                    if (s[i].startsWith("version")) {
+                        val tag = s[i].split("=").last().trim().replace("\"", "")
+                        File("${project.projectDir}/tag.txt").writeText(tag)
+                    }
+                }
+            }
+        }
+    }
+}
+
+class ReleasePlugin: Plugin<Project> {
+    override fun apply(target: Project) {
+        target.task("release") {
+            doFirst {
+                // Grab the version, and bump it
+                val version = target.version.toString().split('.').toMutableList()
+                var minor: Int = version.removeLast().toInt()
+
+                // See what git branch we're on
+                val output = ByteArrayOutputStream()
+                target.exec {
+                    commandLine = "git rev-parse --abbrev-ref HEAD".split(" ")
+                    standardOutput = output
+                }
+                val branch = output.toString().trim()
+
+                val isMain = branch == "main" || branch == "master"
+
+                if(isMain) { minor += 1 }
+
+                // Save the new version
+                val suffix = if(isMain) minor.toString() else "${minor}-${System.getenv("GITHUB_RUN_NUMBER")}-SNAPSHOT"
+                target.version = "${version.joinToString(".")}.${suffix}"
+
+                // Write the changes to the file
+                val file = File("${project.projectDir}/build.gradle.kts")
+                val s = file.readText().split('\n').toMutableList()
+                for (i in s.indices) {
+                    if(s[i].startsWith("version")) {
+                        s[i] = "version = \"${target.version}\""
+                    }
+                }
+                file.writeText(s.joinToString("\n"))
+
+                val release = if(isMain) "latest" else "snapshot"
+                File("${project.projectDir}/release.txt").writeText(release)
+
+                // If we're on the main or master branch, it's a release so commit the changes
+                if(isMain) {
+
+                    // Commit the change
+                    target.exec {
+                        commandLine = mutableListOf("git", "commit", "-a", "-m", "\"[ci skip] Bumping version number for release\"")
+                    }
+                    target.exec {
+                        commandLine = mutableListOf("git", "tag", "v${target.version}")
+                    }
+                    // Push the change
+                    target.exec {
+                        commandLine = mutableListOf("git", "push", "--tags")
+                    }
+                }
+            }
+        }
+    }
+}
+
+apply<ReleasePlugin>()
+apply<VersionPlugin>()
 
 plugins {
     id("org.springframework.boot") version "2.6.2"
@@ -26,8 +106,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     implementation(platform("com.netflix.graphql.dgs:graphql-dgs-platform-dependencies:latest.release"))
     implementation("com.netflix.graphql.dgs:graphql-dgs-spring-boot-starter")
-    implementation("help.swgoh.api:swgoh-api-connector:4.2.1")
-
+    implementation("help.swgoh.api:swgoh-api-connector:4.3.0")
 }
 
 
