@@ -58,24 +58,42 @@ jobs:
           push: true
           tags: mbruty/swgoh-api:${{ env.RELEASE }}
 
-# Ignore deploying for now...
-#  deploy:
-#    name: Deploy container
-#    needs: build
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: SSH pipeline
-#        uses: cross-the-world/ssh-pipeline@master
-#        with:
-#          host: ${{ secrets.DC_HOST }}
-#          user: ${{ secrets.DC_USER }}
-#          pass: ${{ secrets.DC_PASS }}
-#          connect_timeout: 10s
-#          script: |
-#            docker container stop API
-#            docker container rm API
-#            docker pull mbruty/swgoh-api
-#            docker run -d -p 80:8080 --name API mbruty/swgoh-api
+  deploy:
+    name: Deploy container
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - name: SSH pipeline
+        uses: cross-the-world/ssh-pipeline@master
+        with:
+          host: ${{ secrets.DC_HOST }}
+          user: ${{ secrets.DC_USER }}
+          pass: ${{ secrets.DC_PASS }}
+          connect_timeout: 10s
+          script: |
+            docker container stop API
+            docker container rm API
+            docker pull mbruty/swgoh-api:latest
+            docker run -d -p 80:8080 --name API mbruty/swgoh-api
+  deploy-snapshot:
+    name: Deploy snapshot container
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref != 'refs/heads/master'
+    steps:
+      - name: SSH pipeline
+        uses: cross-the-world/ssh-pipeline@master
+        with:
+          host: ${{ secrets.DC_HOST }}
+          user: ${{ secrets.DC_USER }}
+          pass: ${{ secrets.DC_PASS }}
+          connect_timeout: 10s
+          script: |
+            docker container stop API
+            docker container rm API
+            docker pull mbruty/swgoh-api:snapshot
+            docker run -d -p 8080:8080 --name API mbruty/swgoh-api
 
 
 
