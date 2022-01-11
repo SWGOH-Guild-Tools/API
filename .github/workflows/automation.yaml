@@ -45,6 +45,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
+          build-args: ${{ env.TAG_NUMBER }}.jar
           push: true
           tags: mbruty/swgoh-api:${{ env.TAG_NUMBER }}
 
