@@ -29,8 +29,11 @@ jobs:
           restore-keys: ${{ runner.os }}-gradle
       - name: Run Gradle Release
         run: ./gradlew release
-      - name: Run Gradle Version
-        run: ./gradlew version
+      - name: Upload tag number
+        uses: actions/upload-artifact@v2
+        with:
+          name: tag
+          path: tag.txt
       - name: Commit release changes
         uses: EndBug/add-and-commit@v7
         with:
@@ -81,6 +84,26 @@ jobs:
             docker container rm API
             docker pull mbruty/swgoh-api:latest
             docker run -d -p 80:8080 --name API mbruty/swgoh-api
+  tag:
+    name: Create a GitHub tag
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - name: Download tag
+        uses: actions/download-artifact@v2
+      - name: Set Environment
+        run: echo "TAG_NUMBER=$(cat tag.txt)" >> $GITHUB_ENV
+      - name: Create tag
+        uses: actions/github-script@v5
+          with:
+            script: |
+              github.rest.git.createRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: 'refs/tags/${{ env.TAG_NUMBER }}',
+                sha: context.sha
+              })
   deploy-snapshot:
     name: Deploy snapshot container
     needs: build

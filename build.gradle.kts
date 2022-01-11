@@ -3,29 +3,13 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import java.io.ByteArrayOutputStream
 
-class VersionPlugin: Plugin<Project> {
-    override fun apply(target: Project) {
-        target.task("version") {
-            doFirst {
-                val file = File("${project.projectDir}/build.gradle.kts")
-                val s = file.readText().split('\n').toMutableList()
-                for(i in s.indices) {
-                    if (s[i].startsWith("version")) {
-                        val tag = s[i].split("=").last().trim().replace("\"", "")
-                        File("${project.projectDir}/tag.txt").writeText(tag)
-                    }
-                }
-            }
-        }
-    }
-}
-
 class ReleasePlugin: Plugin<Project> {
     override fun apply(target: Project) {
         target.task("release") {
             doFirst {
                 // Grab the version, and bump it
                 val version = target.version.toString().split('.').toMutableList()
+                version.removeLast()
                 var minor: Int = version.removeLast().toInt()
 
                 // See what git branch we're on
@@ -40,9 +24,11 @@ class ReleasePlugin: Plugin<Project> {
 
                 if(isMain) { minor += 1 }
 
+                val runner = System.getenv("GITHUB_RUN_NUMBER")
                 // Save the new version
-                val suffix = if(isMain) minor.toString() else "${minor}-${System.getenv("GITHUB_RUN_NUMBER")}-SNAPSHOT"
-                target.version = "${version.joinToString(".")}.${suffix}"
+                // <major>.<minor>.<patch>
+                val suffix = if(isMain) "${minor}.${runner}" else "${minor}.${runner}-SNAPSHOT"
+                target.version = "${version[0]}.${suffix}"
 
                 // Write the changes to the file
                 val file = File("${project.projectDir}/build.gradle.kts")
@@ -56,13 +42,13 @@ class ReleasePlugin: Plugin<Project> {
 
                 val release = if(isMain) "latest" else "snapshot"
                 File("${project.projectDir}/release.txt").writeText(release)
+                File("${project.projectDir}/tag.txt").writeText(target.version.toString())
             }
         }
     }
 }
 
 apply<ReleasePlugin>()
-apply<VersionPlugin>()
 
 plugins {
     id("org.springframework.boot") version "2.6.2"
