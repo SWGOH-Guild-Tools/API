@@ -44,7 +44,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: mbruty/swgoh-api:${{ TAG_NUMBER }}
+          tags: mbruty/swgoh-api:${{ env.TAG_NUMBER }}
 
 # Ignore deploying for now...
 #  deploy:
