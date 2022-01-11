@@ -34,7 +34,7 @@ jobs:
       - name: Commit release changes
         uses: EndBug/add-and-commit@v7
         with:
-          message: [ci skip] Bump version number
+          message: "[ci skip] Bump version number"
           committer_name: GitHub Actions
           committer_email: 41898282+github-actions[bot]@users.noreply.github.com
       - name: Set Environment
