@@ -56,22 +56,6 @@ class ReleasePlugin: Plugin<Project> {
 
                 val release = if(isMain) "latest" else "snapshot"
                 File("${project.projectDir}/release.txt").writeText(release)
-
-                // If we're on the main or master branch, it's a release so commit the changes
-                if(isMain) {
-
-                    // Commit the change
-                    target.exec {
-                        commandLine = mutableListOf("git", "commit", "-a", "-m", "\"[ci skip] Bumping version number for release\"")
-                    }
-                    target.exec {
-                        commandLine = mutableListOf("git", "tag", "v${target.version}")
-                    }
-                    // Push the change
-                    target.exec {
-                        commandLine = mutableListOf("git", "push", "--tags")
-                    }
-                }
             }
         }
     }
