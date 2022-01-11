@@ -96,14 +96,14 @@ jobs:
         run: echo "TAG_NUMBER=$(cat tag.txt)" >> $GITHUB_ENV
       - name: Create tag
         uses: actions/github-script@v5
-          with:
-            script: |
-              github.rest.git.createRef({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                ref: 'refs/tags/${{ env.TAG_NUMBER }}',
-                sha: context.sha
-              })
+        with:
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/tags/${{ env.TAG_NUMBER }}',
+              sha: context.sha
+            })
   deploy-snapshot:
     name: Deploy snapshot container
     needs: build
