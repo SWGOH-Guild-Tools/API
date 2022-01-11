@@ -30,10 +30,12 @@ jobs:
           restore-keys: ${{ runner.os }}-gradle
       - name: Run Gradle Release
         run: ./gradlew release
-      - name: Set Env
+      - name: Run Gradle Version
+        run: ./gradlew version
+      - name: Set Environment
         run: |
-          ./gradlew version
           echo "TAG_NUMBER=$(cat tag.txt)" >> $GITHUB_ENV
+          echo "RELEASE=$(cat release.txt)" >> $GITHUB_ENV
       - name: Build with Gradle
         run: ./gradlew build
       - name: Login to DockerHub
@@ -41,13 +43,20 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build and push
+      - name: Build and push tag
         uses: docker/build-push-action@v2
         with:
           context: .
           build-args: ${{ env.TAG_NUMBER }}.jar
           push: true
           tags: mbruty/swgoh-api:${{ env.TAG_NUMBER }}
+      - name: Build and push release
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          build-args: ${{ env.TAG_NUMBER }}.jar
+          push: true
+          tags: mbruty/swgoh-api:${{ env.RELEASE }}
 
 # Ignore deploying for now...
 #  deploy:

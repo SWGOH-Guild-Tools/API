@@ -54,6 +54,9 @@ class ReleasePlugin: Plugin<Project> {
                 }
                 file.writeText(s.joinToString("\n"))
 
+                val release = if(isMain) "latest" else "snapshot"
+                File("${project.projectDir}/release.txt").writeText(release)
+
                 // If we're on the main or master branch, it's a release so commit the changes
                 if(isMain) {
 
