@@ -70,7 +70,7 @@ jobs:
     name: Deploy container
     needs: build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/main'
     steps:
       - name: SSH pipeline
         uses: cross-the-world/ssh-pipeline@master
@@ -88,7 +88,7 @@ jobs:
     name: Create a GitHub tag
     needs: build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/main'
     steps:
       - name: Download tag
         uses: actions/download-artifact@v2
@@ -108,7 +108,7 @@ jobs:
     name: Deploy snapshot container
     needs: build
     runs-on: ubuntu-latest
-    if: github.ref != 'refs/heads/master'
+    if: github.ref != 'refs/heads/main'
     steps:
       - name: SSH pipeline
         uses: cross-the-world/ssh-pipeline@master
