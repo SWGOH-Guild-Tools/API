@@ -4,15 +4,25 @@ import org.gradle.api.Project
 import java.io.ByteArrayOutputStream
 import java.util.Date
 
-open class ReleasePlugin: Plugin<Project> {
+class VersionPlugin: Plugin<Project> {
     override fun apply(target: Project) {
-
         target.task("version") {
-            target.exec {
-                commandLine = mutableListOf("echo", "TAG_NUMBER=${target.version}", ">>", "\$GITHUB_ENV")
+            val file = File("${project.projectDir}/build.gradle.kts")
+            val s = file.readText().split('\n').toMutableList()
+            for(i in s.indices) {
+                if (s[i].startsWith("version")) {
+                    val tag = s[i].split("=").last().trim().replace("\"", "")
+                    target.exec {
+                        commandLine = mutableListOf("echo", "TAG_NUMBER=${tag}", ">>", "\$GITHUB_ENV")
+                    }
+                }
             }
         }
+    }
+}
 
+class ReleasePlugin: Plugin<Project> {
+    override fun apply(target: Project) {
         target.task("release") {
             doFirst {
                 // Grab the version, and bump it
@@ -66,6 +76,7 @@ open class ReleasePlugin: Plugin<Project> {
 }
 
 apply<ReleasePlugin>()
+apply<VersionPlugin>()
 
 plugins {
     id("org.springframework.boot") version "2.6.2"
