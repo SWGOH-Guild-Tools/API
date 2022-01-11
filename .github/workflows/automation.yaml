@@ -92,6 +92,8 @@ jobs:
     steps:
       - name: Download tag
         uses: actions/download-artifact@v2
+        with:
+          name: tag
       - name: Set Environment
         run: echo "TAG_NUMBER=$(cat tag.txt)" >> $GITHUB_ENV
       - name: Create tag
