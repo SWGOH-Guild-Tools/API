@@ -10,10 +10,12 @@ import io.guildtools.swgraphql.`api-swgoh-help`.DBConnection
 import io.guildtools.swgraphql.`api-swgoh-help`.SWGOHConnection
 import io.guildtools.swgraphql.cache.GuildRepository
 import io.guildtools.swgraphql.cache.PlayerRepository
+import io.guildtools.swgraphql.data.Bindings
 import io.guildtools.swgraphql.data.PRIORITY
 import io.guildtools.swgraphql.data.QUERY_TYPE
 import io.guildtools.swgraphql.model.types.Guild
 import io.guildtools.swgraphql.model.types.Player
+import io.guildtools.swgraphql.model.types.Roster
 import org.springframework.beans.factory.annotation.Autowired
 
 @DgsComponent
@@ -26,7 +28,7 @@ class PlayerDataFetcher {
     private lateinit var _playerRepo: PlayerRepository
 
     @DgsQuery
-    fun Player(allyCode: Int): Player {
+    fun player(allyCode: Int): Player {
         DBConnection.setRepos(_guildRepo, _playerRepo)
 
         var player = _playerRepo.findPlayerByAllyCode(allyCode)
@@ -41,12 +43,39 @@ class PlayerDataFetcher {
             player = player.copy(isStale = true)
         }
 
-        val newRoster = player.roster?.sortedByDescending {
-            it?.gp
+        val newRoster = player.roster?.sortedByDescending { it?.gp }?.toMutableList()
+
+        var gls = mutableListOf<Roster>()
+
+        Bindings.getGls().forEach { gl ->
+            val unit = newRoster?.find { x -> x?.defId == gl }
+            if(unit != null) {
+                newRoster.remove(unit)
+                gls.add(unit)
+            }
+        }
+
+        if(gls.isNotEmpty()) {
+            gls = gls.sortedBy { it.gp }.toMutableList()
+            gls.forEach { newRoster?.add(0, it) }
         }
 
         return player.copy(roster = newRoster)
+    }
 
+    @DgsData(parentType = "Player")
+    fun roster(dfe: DgsDataFetchingEnvironment): List<Roster?> {
+        val x = dfe.arguments
+        val src = dfe.getSource<Player>()
+
+        // If we have no roster, return an empty list
+        if(src.roster == null) return emptyList()
+
+        // If we don't have any arguments, we don't need to do any filtering
+        if(x.isEmpty()) return src.roster
+
+        val combatType = x["combatType"] as Int
+        return src.roster.filter { it?.combatType == combatType }
     }
 
     @DgsData(parentType = "Player")
@@ -60,8 +89,8 @@ class PlayerDataFetcher {
         return null
     }
 
-    @DgsData(parentType = "Guild")
-    fun roster(dfe: DgsDataFetchingEnvironment): List<Player>? {
+    @DgsData(field = "roster", parentType = "Guild")
+    fun playerRoster(dfe: DgsDataFetchingEnvironment): List<Player>? {
         val src = dfe.getSource<Guild>()
         val id = src.id ?: return emptyList()
         val needUpdating = mutableListOf<Int>()

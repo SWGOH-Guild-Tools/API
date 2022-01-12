@@ -1,6 +1,6 @@
 type Query {
-    Guild(allyCode: Int): Guild
-    Player(allyCode: Int): Player
+    guild(allyCode: Int): Guild
+    player(allyCode: Int): Player
     faction(guildRefId: String, faction: String): [ Player ]
     factions: [ String ]
 }
@@ -153,6 +153,6 @@ type Player {
   level: Int
   guildRefId: String
   updated: String
-  roster: [Roster]
+  roster(combatType: Int): [ Roster ]
   isStale: Boolean
 }
