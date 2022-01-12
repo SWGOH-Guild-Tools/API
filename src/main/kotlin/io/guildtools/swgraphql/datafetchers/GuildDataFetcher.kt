@@ -23,7 +23,7 @@ class GuildDataFetcher {
     lateinit var _playerRepo: PlayerRepository
 
     @DgsQuery
-    fun Guild(allyCode: Int): Guild {
+    fun guild(allyCode: Int): Guild {
         DBConnection.setRepos(_guildRepo, _playerRepo)
 
         var guild = _guildRepo.findByRosterAllyCode(allyCode)
