@@ -13,6 +13,7 @@ import io.guildtools.swgraphql.cache.PlayerRepository
 import io.guildtools.swgraphql.data.Bindings
 import io.guildtools.swgraphql.data.PRIORITY
 import io.guildtools.swgraphql.data.QUERY_TYPE
+import io.guildtools.swgraphql.model.types.Crew
 import io.guildtools.swgraphql.model.types.Guild
 import io.guildtools.swgraphql.model.types.Player
 import io.guildtools.swgraphql.model.types.Roster
@@ -75,7 +76,27 @@ class PlayerDataFetcher {
         if(x.isEmpty()) return src.roster
 
         val combatType = x["combatType"] as Int
-        return src.roster.filter { it?.combatType == combatType }
+        val roster = src.roster.filter { it?.combatType == combatType }
+
+        // If we're only dealing with characters, return it
+        if(combatType == 1) return roster
+
+        val newRoster = mutableListOf<Roster>()
+        // Else we're dealing with ships... Let's resolve the crew
+        roster.forEach {
+            var copy = it?.copy()
+            if(copy?.combatType == 2) {
+                // Try and find the characters
+                val newCrew = mutableListOf<Crew>()
+                copy.crew?.forEach { member ->
+                    val unit = src.roster.find { x -> x?.defId == member?.unitId }
+                    member?.copy(unit = unit)?.let { it1 -> newCrew.add(it1) }
+                }
+                copy = copy.copy(crew = newCrew)
+            }
+            copy?.let { it1 -> newRoster.add(it1) }
+        }
+        return newRoster
     }
 
     @DgsData(parentType = "Player")

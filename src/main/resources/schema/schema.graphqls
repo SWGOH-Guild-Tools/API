@@ -113,6 +113,7 @@ type Crew {
   gp: Int
   cp: Float
   skillReferenceList: [SkillReferenceList]
+  unit: Roster
 }
 
 type Equipped {
