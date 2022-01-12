@@ -7,6 +7,8 @@ import org.springframework.web.client.RestTemplate
 class Bindings {
     private val _map = HashMap<String, Character>()
 
+    private val _gls = listOf("GRANDMASTERLUKE", "SITHPALPATINE", "GLREY", "SUPREMELEADERKYLOREN", "JEDIMASTERKENOBI")
+
     private val _factions: List<String>
 
     private constructor() {
@@ -38,5 +40,7 @@ class Bindings {
         fun getCharacter(defId: String): Character? { return instance._map[defId] }
 
         fun getFactions(): List<String> { return instance._factions }
+
+        fun getGls(): List<String> { return instance._gls }
     }
 }
