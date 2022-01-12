@@ -4,6 +4,7 @@ import com.netflix.graphql.dgs.DgsComponent
 import com.netflix.graphql.dgs.DgsData
 import com.netflix.graphql.dgs.DgsDataFetchingEnvironment
 import com.netflix.graphql.dgs.DgsQuery
+import graphql.GraphQLException
 import io.guildtools.swgraphql.Utils
 import io.guildtools.swgraphql.`api-swgoh-help`.DBConnection
 import io.guildtools.swgraphql.`api-swgoh-help`.SWGOHConnection
@@ -40,8 +41,23 @@ class PlayerDataFetcher {
             player = player.copy(isStale = true)
         }
 
-        return player
+        val newRoster = player.roster?.sortedByDescending {
+            it?.gp
+        }
 
+        return player.copy(roster = newRoster)
+
+    }
+
+    @DgsData(parentType = "Player")
+    fun guildName(dfe: DgsDataFetchingEnvironment): String? {
+        val src = dfe.getSource<Player>()
+        if(src.guildRefId == null) throw GraphQLException("Failed to resolve guild name")
+        val res = _guildRepo.findNameByGuildRef(src.guildRefId)
+        if (res != null) {
+            return res.name
+        }
+        return null
     }
 
     @DgsData(parentType = "Guild")

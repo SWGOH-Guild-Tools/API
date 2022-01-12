@@ -5,6 +5,7 @@ type Query {
     factions: [ String ]
 }
 
+
 type Raid { rancor: String aat: String sith_raid: String }
 
 type Guild {
@@ -147,6 +148,7 @@ type Roster {
 type Player {
   allyCode: Int
   id: String
+  guildName: String
   name: String
   level: Int
   guildRefId: String
