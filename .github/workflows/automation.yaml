@@ -93,7 +93,7 @@ jobs:
 
   deploy:
     name: Deploy container
-    needs: build
+    needs: container
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
@@ -133,7 +133,7 @@ jobs:
             })
   deploy-snapshot:
     name: Deploy snapshot container
-    needs: build
+    needs: container
     runs-on: ubuntu-latest
     if: github.ref != 'refs/heads/main'
     steps:
