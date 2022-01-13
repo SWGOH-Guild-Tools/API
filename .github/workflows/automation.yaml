@@ -35,6 +35,11 @@ jobs:
         with:
           name: tag
           path: tag.txt
+      - name: Upload dockerfile
+        uses: actions/upload-artifact@v2
+        with:
+          name: dockerfile
+          path: dockerfile
       - name: Upload release text
         uses: actions/upload-artifact@v2
         with:
@@ -77,6 +82,10 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: jar
+      - name: Download dockerfile
+        uses: actions/download-artifact@v2
+        with:
+          name: dockerfile
       - name: Log in to GitHub Docker Registry
         uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
         with:
