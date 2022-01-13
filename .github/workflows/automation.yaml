@@ -72,8 +72,8 @@ jobs:
         run: echo "TAG_NUMBER=$(cat tag.txt)" >> $GITHUB_ENV
       - name: Download Jar
         uses: actions/download-artifact@v2
-          with:
-            name: jar
+        with:
+          name: jar
       - name: Log in to GitHub Docker Registry
         uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
         with:
