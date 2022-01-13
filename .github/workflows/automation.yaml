@@ -36,6 +36,7 @@ jobs:
           name: tag
           path: tag.txt
       - name: Commit release changes
+        if: github.ref != 'refs/heads/main'
         uses: EndBug/add-and-commit@v7
         with:
           message: "[ci skip] Bump version number"
@@ -51,7 +52,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: jar
-          path: ./build/libs/${{ env.TAG_NUMBER }}.jar
+          path: ./build/libs/*.jar
   container:
     name: Build Container
     needs: build
