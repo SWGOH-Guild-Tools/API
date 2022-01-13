@@ -102,7 +102,7 @@ jobs:
         with:
           context: .
           push: true
-          build-args: ${{ env.JAR }}
+          build-args: "${{ env.JAR }}"
           tags: |
             docker.pkg.github.com/${{ env.REPO }}/api-image:${{ env.TAG_NUMBER }}
             docker.pkg.github.com/${{ env.REPO }}/api-image:${{ env.RELEASE }}
