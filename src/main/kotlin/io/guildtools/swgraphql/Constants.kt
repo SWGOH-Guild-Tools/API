@@ -2,6 +2,6 @@ package io.guildtools.swgraphql
 
 class Constants {
     companion object {
-        val WEB_URL = "http://localhost:3000"
+        val WEB_URL = "http://31.214.246.48:3000"
     }
 }
