@@ -35,13 +35,11 @@ jobs:
         with:
           name: tag
           path: tag.txt
-      - name: Commit release changes
-        uses: EndBug/add-and-commit@v7
+      - name: Upload build.gradle
+        uses: actions/upload-artifact@v2
         with:
-          message: "[ci skip] Bump version number"
-          committer_name: GitHub Actions
-          committer_email: 41898282+github-actions[bot]@users.noreply.github.com
-        if: github.ref != 'refs/heads/main'
+          name: gradle
+          path: build.gradle.kts
       - name: Set Environment
         run: |
           echo "TAG_NUMBER=$(cat tag.txt)" >> $GITHUB_ENV
@@ -76,7 +74,7 @@ jobs:
           password: ${{ secrets.GH_TOKEN }}
       - name: Lowercase REPO
         run: |
-          echo "REPO=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
+          echo "REPO=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
       - name: Build and push Docker image
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
@@ -84,9 +82,27 @@ jobs:
           push: true
           build-args: ${{ env.TAG_NUMBER }}.jar
           tags: |
-            docker.pkg.github.com/${{ env.GITHUB_REPOSITORY }}/api-image:${{ github.sha }}
-            docker.pkg.github.com/${{ env.GITHUB_REPOSITORY }}/api-image:${{ env.TAG_NUMBER }}
-            docker.pkg.github.com/${{ env.GITHUB_REPOSITORY }}/api-image:${{ env.RELEASE }}
+            docker.pkg.github.com/${{ env.REPO }}/api-image:${{ github.sha }}
+            docker.pkg.github.com/${{ env.REPO }}/api-image:${{ env.TAG_NUMBER }}
+            docker.pkg.github.com/${{ env.REPO }}/api-image:${{ env.RELEASE }}
+  version:
+    name: Bump Version Number
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Download tag
+        uses: actions/download-artifact@v2
+        with:
+          name: gradle
+      - name: Commit release changes
+        uses: EndBug/add-and-commit@v7
+        with:
+          message: "[ci skip] Bump version number"
+          committer_name: GitHub Actions
+          committer_email: 41898282+github-actions[bot]@users.noreply.github.com
 
   deploy:
     name: Deploy container
