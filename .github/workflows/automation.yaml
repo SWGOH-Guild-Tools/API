@@ -51,7 +51,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: jar
-          path: /build/libs/${{ env.TAG_NUMBER }}.jar
+          path: ./build/libs/${{ env.TAG_NUMBER }}.jar
   container:
     name: Build Container
     needs: build
