@@ -135,7 +135,7 @@ jobs:
           user: ${{ secrets.DC_USER }}
           pass: ${{ secrets.DC_PASS }}
           connect_timeout: 10s
-          script: docker-compose up -d
+          script: ./update.sh
   tag:
     name: Create a GitHub tag
     needs: build
