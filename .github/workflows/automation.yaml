@@ -36,12 +36,12 @@ jobs:
           name: tag
           path: tag.txt
       - name: Commit release changes
-        if: github.ref != 'refs/heads/main'
         uses: EndBug/add-and-commit@v7
         with:
           message: "[ci skip] Bump version number"
           committer_name: GitHub Actions
           committer_email: 41898282+github-actions[bot]@users.noreply.github.com
+        if: github.ref != 'refs/heads/main'
       - name: Set Environment
         run: |
           echo "TAG_NUMBER=$(cat tag.txt)" >> $GITHUB_ENV
@@ -74,6 +74,9 @@ jobs:
           registry: docker.pkg.github.com
           username: ${{ github.actor }}
           password: ${{ secrets.GH_TOKEN }}
+      - name: Lowercase REPO
+        run: |
+          echo "REPO=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
       - name: Build and push Docker image
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
@@ -81,9 +84,9 @@ jobs:
           push: true
           build-args: ${{ env.TAG_NUMBER }}.jar
           tags: |
-            docker.pkg.github.com/${{ github.repository }}/api-image:${{ github.sha }}
-            docker.pkg.github.com/${{ github.repository }}/api-image:${{ env.TAG_NUMBER }}
-            docker.pkg.github.com/${{ github.repository }}/api-image:${{ env.RELEASE }}
+            docker.pkg.github.com/${{ env.GITHUB_REPOSITORY }}/api-image:${{ github.sha }}
+            docker.pkg.github.com/${{ env.GITHUB_REPOSITORY }}/api-image:${{ env.TAG_NUMBER }}
+            docker.pkg.github.com/${{ env.GITHUB_REPOSITORY }}/api-image:${{ env.RELEASE }}
 
   deploy:
     name: Deploy container
