@@ -35,6 +35,11 @@ jobs:
         with:
           name: tag
           path: tag.txt
+      - name: Upload release text
+        uses: actions/upload-artifact@v2
+        with:
+          name: release
+          path: release.txt
       - name: Upload build.gradle
         uses: actions/upload-artifact@v2
         with:
@@ -60,8 +65,14 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: tag
+      - name: Download release
+        uses: actions/download-artifact@v2
+        with:
+          name: release
       - name: Set Environment
-        run: echo "TAG_NUMBER=$(cat tag.txt)" >> $GITHUB_ENV
+        run: |
+          echo "TAG_NUMBER=$(cat tag.txt)" >> $GITHUB_ENV
+          echo "RELEASE=$(cat release.txt)" >> $GITHUB_ENV
       - name: Download Jar
         uses: actions/download-artifact@v2
         with:
