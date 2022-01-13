@@ -81,6 +81,8 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: jar
+      - name: Debug
+        run: ls
       - name: Download dockerfile
         uses: actions/download-artifact@v2
         with:
@@ -123,10 +125,9 @@ jobs:
           committer_email: 41898282+github-actions[bot]@users.noreply.github.com
 
   deploy:
-    name: Deploy container
+    name: Deploy Containers
     needs: container
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
     steps:
       - name: SSH pipeline
         uses: cross-the-world/ssh-pipeline@master
@@ -135,11 +136,7 @@ jobs:
           user: ${{ secrets.DC_USER }}
           pass: ${{ secrets.DC_PASS }}
           connect_timeout: 10s
-          script: |
-            docker container stop API
-            docker container rm API
-            docker pull mbruty/swgoh-api:latest
-            docker run -d -p 80:8080 --name API mbruty/swgoh-api
+          script: docker compose up -d
   tag:
     name: Create a GitHub tag
     needs: build
@@ -162,21 +159,3 @@ jobs:
               ref: 'refs/tags/${{ env.TAG_NUMBER }}',
               sha: context.sha
             })
-  deploy-snapshot:
-    name: Deploy snapshot container
-    needs: container
-    runs-on: ubuntu-latest
-    if: github.ref != 'refs/heads/main'
-    steps:
-      - name: SSH pipeline
-        uses: cross-the-world/ssh-pipeline@master
-        with:
-          host: ${{ secrets.DC_HOST }}
-          user: ${{ secrets.DC_USER }}
-          pass: ${{ secrets.DC_PASS }}
-          connect_timeout: 10s
-          script: |
-            docker container stop API
-            docker container rm API
-            docker pull mbruty/swgoh-api:snapshot
-            docker run -d -p 8080:8080 --name API mbruty/swgoh-api
