@@ -82,7 +82,6 @@ jobs:
           push: true
           build-args: ${{ env.TAG_NUMBER }}.jar
           tags: |
-            docker.pkg.github.com/${{ env.REPO }}/api-image:${{ github.sha }}
             docker.pkg.github.com/${{ env.REPO }}/api-image:${{ env.TAG_NUMBER }}
             docker.pkg.github.com/${{ env.REPO }}/api-image:${{ env.RELEASE }}
   version:
