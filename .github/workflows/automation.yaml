@@ -73,14 +73,15 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: release
-      - name: Set Environment
-        run: |
-          echo "TAG_NUMBER=$(cat tag.txt)" >> $GITHUB_ENV
-          echo "RELEASE=$(cat release.txt)" >> $GITHUB_ENV
       - name: Download Jar
         uses: actions/download-artifact@v2
         with:
           name: jar
+      - name: Set Environment
+        run: |
+          echo "TAG_NUMBER=$(cat tag.txt)" >> $GITHUB_ENV
+          echo "RELEASE=$(cat release.txt)" >> $GITHUB_ENV
+          echo "JAR=$(echo *.jar)" >> $GITHUB_ENV
       - name: Debug
         run: ls
       - name: Download dockerfile
@@ -101,7 +102,7 @@ jobs:
         with:
           context: .
           push: true
-          build-args: ${{ env.TAG_NUMBER }}.jar
+          build-args: ${{ env.JAR }}
           tags: |
             docker.pkg.github.com/${{ env.REPO }}/api-image:${{ env.TAG_NUMBER }}
             docker.pkg.github.com/${{ env.REPO }}/api-image:${{ env.RELEASE }}
