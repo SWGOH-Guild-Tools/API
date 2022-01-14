@@ -43,6 +43,16 @@ class ReleasePlugin: Plugin<Project> {
                 val release = if(isMain) "latest" else "snapshot"
                 File("${project.projectDir}/release.txt").writeText(release)
                 File("${project.projectDir}/tag.txt").writeText(target.version.toString())
+
+                // On release, update application.properties to set mongo connection to 0.0.0.0 instead of external
+                val applicationFile = File("/src/main/resources/application.properties")
+                val data = applicationFile.readText().split('\n').toMutableList()
+                for (i in data.indices) {
+                    if(data[i].startsWith("spring.data.mongodb.host")) {
+                        data[i] = "spring.data.mongodb.host=0.0.0.0:27017"
+                    }
+                }
+                applicationFile.writeText(data.joinToString("\n"))
             }
         }
     }
