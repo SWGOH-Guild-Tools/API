@@ -153,6 +153,6 @@ type Player {
   level: Int
   guildRefId: String
   updated: String
-  roster(combatType: Int): [ Roster ]
+  roster(combatType: Int, onlyGl: Boolean): [ Roster ]
   isStale: Boolean
 }
