@@ -82,6 +82,24 @@ class SWGOHConnection private constructor()  {
         }
 
         fun enqueue(code: Int, priority: PRIORITY, queryType: QUERY_TYPE, count: Int = 0) {
+            var queueSize = 0
+            var queuePosition = 0
+            var x: KeyValuePair<Int, Int>
+            x = checkInQueue(queryType, code, instance._highestQueue)
+            queuePosition += x.key + 1
+            queueSize += x.value
+            x = checkInQueue(queryType, code, instance._patreonQueue)
+            queuePosition += x.key + 1
+            queueSize += x.value
+            x = checkInQueue(queryType, code, instance._normalQueue)
+            queuePosition += x.key + 1
+            queueSize += x.value
+            x = checkInQueue(queryType, code, instance._lowestQueue)
+            queuePosition += x.key + 1
+            queueSize += x.value
+
+            if(queuePosition != 0) throw AlreadyInQueueException(queuePosition, queueSize)
+
             when(priority) {
                 PRIORITY.HIGHEST -> {
                     instance._highestQueue.add(QueueObject(code, queryType, count))
@@ -99,6 +117,11 @@ class SWGOHConnection private constructor()  {
             instance._apiWorker.start()
         }
 
+
+        fun checkInQueue(queryType: QUERY_TYPE, code: Int, queue: LinkedList<QueueObject<Int>>): KeyValuePair<Int, Int> {
+            val index = queue.indexOfFirst { it.type == queryType && it.key == code }
+            return KeyValuePair(index, queue.size)
+        }
         fun dequeue(): MutableList<QueueObject<Int>> {
             val numToFetch = AtomicInteger(25)
             val list = mutableListOf<QueueObject<Int>>()
