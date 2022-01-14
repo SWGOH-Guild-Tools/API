@@ -7,7 +7,7 @@ import org.springframework.web.client.RestTemplate
 class Bindings {
     private val _map = HashMap<String, Character>()
 
-    private val _gls = listOf("GRANDMASTERLUKE", "SITHPALPATINE", "GLREY", "SUPREMELEADERKYLOREN", "JEDIMASTERKENOBI", "CAPITALEXECUTOR")
+    private val _gls = listOf("GRANDMASTERLUKE", "SITHPALPATINE", "GLREY", "SUPREMELEADERKYLOREN", "JEDIMASTERKENOBI", "LORDVADER", "CAPITALEXECUTOR")
 
     private val _factions: List<String>
 
