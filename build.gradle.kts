@@ -69,7 +69,7 @@ plugins {
 }
 
 group = "io.guildtools"
-version = "0.16.88"
+version = "0.17.89"
 java.sourceCompatibility = JavaVersion.VERSION_17
 
 repositories {
