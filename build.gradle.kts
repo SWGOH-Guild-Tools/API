@@ -45,7 +45,7 @@ class ReleasePlugin: Plugin<Project> {
                 File("${project.projectDir}/tag.txt").writeText(target.version.toString())
 
                 // On release, update application.properties to set mongo connection to 0.0.0.0 instead of external
-                val applicationFile = File("/src/main/resources/application.properties")
+                val applicationFile = File("./src/main/resources/application.properties")
                 val data = applicationFile.readText().split('\n').toMutableList()
                 for (i in data.indices) {
                     if(data[i].startsWith("spring.data.mongodb.host")) {
