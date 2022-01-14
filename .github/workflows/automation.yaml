@@ -159,6 +159,7 @@ jobs:
             })
   cleanup:
     name: Cleanup
+    needs: deploy
     runs-on: ubuntu-latest
     steps:
     - name: Delete artifacts
