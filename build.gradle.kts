@@ -49,7 +49,7 @@ class ReleasePlugin: Plugin<Project> {
                 val data = applicationFile.readText().split('\n').toMutableList()
                 for (i in data.indices) {
                     if(data[i].startsWith("spring.data.mongodb.host")) {
-                        data[i] = "spring.data.mongodb.host=0.0.0.0:27017"
+                        data[i] = "spring.data.mongodb.host=mongodb_container:27017"
                     }
                 }
                 applicationFile.writeText(data.joinToString("\n"))
