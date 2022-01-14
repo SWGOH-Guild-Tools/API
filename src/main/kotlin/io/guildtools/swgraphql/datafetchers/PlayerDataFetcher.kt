@@ -74,8 +74,17 @@ class PlayerDataFetcher {
         // If we don't have any arguments, we don't need to do any filtering
         if(x.isEmpty()) return src.roster
 
-        val combatType = x["combatType"] as Int
-        return src.roster.filter { it?.combatType == combatType }
+        val combatType = x["combatType"] as Int?
+        val onlyGl = x["onlyGl"] as Boolean?
+        var roster = src.roster
+        if(onlyGl != null) {
+            roster = roster.filter { Bindings.getGls().contains(it?.defId) }
+        }
+        if(combatType != null) {
+            roster = roster.filter { it?.combatType == combatType }
+        }
+
+        return roster
     }
 
     @DgsData(parentType = "Player")
