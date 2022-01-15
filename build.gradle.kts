@@ -87,6 +87,11 @@ dependencies {
     implementation(platform("com.netflix.graphql.dgs:graphql-dgs-platform-dependencies:latest.release"))
     implementation("com.netflix.graphql.dgs:graphql-dgs-spring-boot-starter")
     implementation("help.swgoh.api:swgoh-api-connector:4.3.0")
+
+    // Metrics
+    implementation("com.netflix.graphql.dgs:graphql-dgs-spring-boot-micrometer")
+    implementation ("io.micrometer:micrometer-registry-prometheus:1.8.1")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
 }
 
 
