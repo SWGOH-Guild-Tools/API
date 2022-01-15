@@ -36,13 +36,13 @@ class SWGOHConnection private constructor()  {
     companion object {
         private val instance: SWGOHConnection by lazy { HOLDER.INSTANCE }
 
-        fun logQueueSize() {
-            var size = 0
-            size += instance._highestQueue.size
-            size += instance._patreonQueue.size
-            size += instance._normalQueue.size
-            size += instance._lowestQueue.size
-            println("Queue Size ${size}")
+        fun getQueues(): List<LinkedList<QueueObject<Int>>> {
+            return listOf(
+                instance._highestQueue,
+                instance._patreonQueue,
+                instance._normalQueue,
+                instance._lowestQueue,
+            )
         }
         fun getSession(): SwgohAPI {
             return instance.api
